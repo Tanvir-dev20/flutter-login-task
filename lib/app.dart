@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:get/route_manager.dart';
 
-import 'login_screen.dart';
+import 'view/login_screen.dart';
 
 class LoginApp extends StatelessWidget {
   const LoginApp({super.key});
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Login app',
       theme: ThemeData(

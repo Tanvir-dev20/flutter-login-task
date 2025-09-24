@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_instance/get_instance.dart';
+import 'package:get/route_manager.dart';
+import 'package:get/state_manager.dart';
+import 'package:login_app/controller/login_controller.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
-
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _emailTEController = TextEditingController();
-  final TextEditingController _passwordTEController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final emailRegEx = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-  final passwordRegEx = RegExp(r'^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{6,}$');
+class LoginScreen extends StatelessWidget {
+  LoginScreen({super.key});
+  final LoginController loginController = Get.put(LoginController());
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,7 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: const EdgeInsets.all(15),
               child: SingleChildScrollView(
                 child: Form(
-                  key: _formKey,
+                  key: loginController.formKey,
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,35 +36,41 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 10),
                       TextFormField(
                         textInputAction: TextInputAction.next,
-                        controller: _emailTEController,
+                        controller: loginController.emailTEController,
                         decoration: InputDecoration(hintText: 'Email'),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Enter a email address';
-                          } else if (!emailRegEx.hasMatch(value)) {
-                            return 'Enter a valid email';
-                          }
-                          return null;
-                        },
+                        validator:
+                            (value) =>
+                                loginController.validateEmailOrPhone(value),
                       ),
                       const SizedBox(height: 10),
-                      TextFormField(
-                        textInputAction: TextInputAction.next,
-                        controller: _passwordTEController,
-                        obscureText: true,
-                        decoration: InputDecoration(hintText: 'Password'),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Enter you\'r password';
-                          } else if (!passwordRegEx.hasMatch(value)) {
-                            return 'Password must be 6 character, 1 number & 1 uppercase letter';
-                          }
-                          return null;
-                        },
+                      Obx(
+                        () => TextFormField(
+                          textInputAction: TextInputAction.next,
+                          controller: loginController.passwordTEController,
+                          obscureText: loginController.isPasswordVisible.value,
+                          decoration: InputDecoration(
+                            hintText: 'Password',
+                            suffixIcon: IconButton(
+                              onPressed: () {
+                                loginController.isPasswordVisible.toggle();
+                              },
+                              icon: Icon(
+                                loginController.isPasswordVisible.value
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                              ),
+                            ),
+                          ),
+                          validator:
+                              (value) =>
+                                  loginController.validatePassword(value),
+                        ),
                       ),
                       const SizedBox(height: 12),
                       FilledButton(
-                        onPressed: _onTapLoginButton,
+                        onPressed: () {
+                          loginController.onTapLoginButton(context);
+                        },
                         child: Text('Log In'),
                       ),
                       const SizedBox(height: 12),
@@ -112,20 +112,5 @@ class _LoginScreenState extends State<LoginScreen> {
         ],
       ),
     );
-  }
-
-  void _onTapLoginButton() {
-    if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Login Successful')));
-    }
-  }
-
-  @override
-  void dispose() {
-    _emailTEController.dispose();
-    _passwordTEController.dispose();
-    super.dispose();
   }
 }
